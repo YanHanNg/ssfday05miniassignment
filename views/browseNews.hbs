@@ -1,0 +1,25 @@
+{{#if haveArticle}}
+    {{#each articles}}
+    <div class="row">
+        <div class="col">
+            <h1>{{this.title}}</h1>
+        </div> 
+    </div>
+    <div class="row">
+        <div class="col">
+            <img src="{{this.urlToImage}}" alt="newsImage" width="50%" height="auto">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <p>{{this.description}}</p>
+        </div>
+    </div>
+    <div class="d-flex justify-content-between">
+        <p>{{this.publishedAt}}</p>
+        <a href="{{this.url}}" target="_blank">Read</a>
+    </div>
+    {{/each}}
+{{else}}
+    <h1>There is no article found pertaining to your search</h1>
+{{/if}}
