@@ -33,6 +33,86 @@ app.get('/', (req, res) => {
 let articles = [];
 let caching = [];
 
+app.get('/searchNews', (req, res) => {
+    //Put Api Key into Headers
+    let headers = {
+        'X-Api-Key': API_KEY
+    }
+
+    //Create the Search URL
+    let url = withQuery(TOP_HEADLINE_ENDPONT,  {
+        country: req.query.country,
+        category: req.query.category.toLowerCase(),
+        q: req.query.newsSearch
+    })
+
+    //Check for the requestedTime
+    let currDate = new Date();
+    let cached = false;
+
+    //Find for available article
+    caching.forEach((d, index) => {
+        if(d.url === url)
+        {
+            let allowedDate = new Date(d.requestedTime);
+            allowedDate.setMinutes(allowedDate.getMinutes() + 1);
+            if(currDate < allowedDate)
+            {
+                console.info('Cached');
+                //Response 201
+                res.status(201);
+                res.type('text/html');
+                res.render('browseNews', {
+                    articles: d.articles,
+                    haveArticle: d.articles.length
+                });
+                cached = true;
+            }
+            else
+            {
+                caching.splice(index, 1);
+            }
+        }
+    })
+
+    if(!cached)
+    {
+        //Fetch the Result
+        let result = fetch(url, {method:"GET", headers});
+        
+        result.then(result => {
+            return result.json();
+        }).then(data => {
+            //Add into Caching
+            console.info('New');
+
+            articles = [];
+
+            for(let a of data.articles)
+            {
+                articles.push(a);
+            }
+
+            //Response 201
+            res.status(201);
+            res.type('text/html');
+            res.render('browseNews', {
+                articles,
+                haveArticle: articles.length
+            });
+
+            //Add to Cache
+            caching.push({
+                url,
+                requestedTime: new Date(),
+                articles
+            })
+        }).catch(e => {
+            console.info('Error happened during fetching of result');
+        }) 
+    }      
+})
+
 app.post('/searchNews', 
     express.urlencoded({ extended: true }),
     (req, res) => {
